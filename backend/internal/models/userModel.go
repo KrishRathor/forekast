@@ -2,18 +2,19 @@ package models
 
 import (
 	"fmt"
-
-	"gorm.io/gorm"
+	"time"
 )
 
 type User struct {
-	gorm.Model
+	ID        string `gorm:"primarykey"`
+	CreatedAt time.Time
+	UpdatedAt time.Time
 	Name      string
-	Email     string
+	Email     string `gorm:"uniqueIndex"`
 	AvatarUrl string
 }
 
-func SaveUserToDb(name, email, avatarUrl string) error {
+func SaveUserToDb(name, email, avatarUrl, id string) error {
 	db := ConnectDB()
 
 	sqldb, err := db.DB()
@@ -22,11 +23,11 @@ func SaveUserToDb(name, email, avatarUrl string) error {
 	}
 	defer sqldb.Close()
 
-	tx := db.Create(&User{Name: name, Email: email, AvatarUrl: avatarUrl})
+	tx := db.Create(&User{Name: name, Email: email, AvatarUrl: avatarUrl, ID: id})
 	return tx.Error
 }
 
-func GetUserById(id uint) (User, error) {
+func GetUserById(id string) (User, error) {
 	db := ConnectDB()
 
 	sqldb, err := db.DB()
@@ -36,7 +37,7 @@ func GetUserById(id uint) (User, error) {
 	defer sqldb.Close()
 
 	var user User
-	tx := db.First(&user, id)
+	tx := db.Where("ID = ?", id).First(&user)
 	return user, tx.Error
 
 }

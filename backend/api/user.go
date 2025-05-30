@@ -6,21 +6,21 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"strconv"
 
 	"github.com/go-chi/chi/v5"
 	"gorm.io/gorm"
 )
 
-type UserCreatedWebhookEvent struct {
+type UserCreatedEvent struct {
 	Data struct {
+		ID             string `json:"id"`
+		FirstName      string `json:"first_name"`
+		LastName       string `json:"last_name"`
 		EmailAddresses []struct {
 			EmailAddress string `json:"email_address"`
 		} `json:"email_addresses"`
 		ExternalAccounts []struct {
 			AvatarURL string `json:"avatar_url"`
-			FirstName string `json:"first_name"`
-			LastName  string `json:"last_name"`
 		} `json:"external_accounts"`
 	} `json:"data"`
 }
@@ -31,13 +31,8 @@ func UserRoutes() http.Handler {
 	r.Get("/{id}", func(w http.ResponseWriter, r *http.Request) {
 		id := chi.URLParam(r, "id")
 
-		numId, err1 := strconv.ParseUint(id, 10, 64)
+		user, err := models.GetUserById(id)
 
-		if err1 != nil {
-			fmt.Println("Can't convert number")
-		}
-
-		user, err := models.GetUserById(uint(numId))
 		if err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				w.Header().Set("Content-Type", "application/json")
@@ -63,7 +58,10 @@ func UserRoutes() http.Handler {
 	})
 
 	r.Post("/createUserWebhook", func(w http.ResponseWriter, r *http.Request) {
-		var event UserCreatedWebhookEvent
+
+		fmt.Println("here")
+
+		var event UserCreatedEvent
 
 		if err := json.NewDecoder(r.Body).Decode(&event); err != nil {
 			http.Error(w, "Invalid JSON", http.StatusBadRequest)
@@ -72,9 +70,12 @@ func UserRoutes() http.Handler {
 
 		email := event.Data.EmailAddresses[0].EmailAddress
 		avatar := event.Data.ExternalAccounts[0].AvatarURL
-		name := fmt.Sprintf("%s %s", event.Data.ExternalAccounts[0].FirstName, event.Data.ExternalAccounts[0].LastName)
+		name := fmt.Sprintf(event.Data.FirstName + event.Data.LastName)
+		id := event.Data.ID
 
-		if err := models.SaveUserToDb(name, email, avatar); err != nil {
+		fmt.Println("id ===>>>>> ", event.Data.ID)
+
+		if err := models.SaveUserToDb(name, email, avatar, id); err != nil {
 			fmt.Println("Error while saving users", err)
 		}
 

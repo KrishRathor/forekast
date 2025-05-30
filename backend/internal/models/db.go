@@ -16,9 +16,9 @@ func ConnectDB() *gorm.DB {
 		fmt.Println("Error connecting database", err)
 	}
 
-  if err := db.AutoMigrate(&User{}); err != nil {
-    fmt.Println("Error in migrating", err)
-  }
+	if err := db.AutoMigrate(&User{}, &Wallet{}, &Market{}); err != nil {
+		fmt.Println("Error in migrating", err)
+	}
 
 	return db
 
