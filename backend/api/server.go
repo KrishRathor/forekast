@@ -40,8 +40,9 @@ func CreateServer() {
 
 	r.Use(middleware.Logger)
 
-	r.Mount("/users", UserRoutes())
-	r.Mount("/wallet", clerkhttp.WithHeaderAuthorization()(WalletRoutes()))
+	r.Mount("/api/v1/users", UserRoutes())
+	r.Mount("/api/v1/markets", MarketRoutes())
+	r.Mount("/api/v1/wallet", clerkhttp.WithHeaderAuthorization()(WalletRoutes()))
 
 	http.ListenAndServe(":3000", r)
 }

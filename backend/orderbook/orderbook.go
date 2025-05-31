@@ -37,8 +37,8 @@ type Orderbook struct {
 }
 
 func NewOrderBook(marketID string) *Orderbook {
-	yh := &PriceHeap{asc: false} // max-heap for Yes
-	nh := &PriceHeap{asc: true}  // min-heap for No
+	yh := &PriceHeap{asc: false}
+	nh := &PriceHeap{asc: true}
 	heap.Init(yh)
 	heap.Init(nh)
 
@@ -60,7 +60,7 @@ func (ob *Orderbook) PlaceOrder(order LimitOrder) []Trade {
 	if order.Yes {
 		trades = ob.match(
 			ob.NoOrders, ob.NoHeap, &order,
-			func(bid, ask float64) bool { return bid+ask >= 1.0 }, // match condition
+			func(bid, ask float64) bool { return bid+ask >= 1.0 },
 			true,
 		)
 		if order.Quantity > 0 {
@@ -117,7 +117,7 @@ func (ob *Orderbook) match(
 			if head.Quantity == 0 {
 				ordersAtPrice = ordersAtPrice[1:]
 			} else {
-				break // FIFO: don't jump over this partially filled order
+				break
 			}
 		}
 

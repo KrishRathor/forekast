@@ -11,8 +11,8 @@ import (
 
 type CreateNewMarketEvent struct {
 	Data struct {
-		question string    `json:"question"`
-		time     time.Time `json:"time"`
+		Question string    `json:"question"`
+		Time     time.Time `json:"time"`
 	} `json:"data"`
 }
 
@@ -27,7 +27,7 @@ func MarketRoutes() http.Handler {
 			return
 		}
 
-		if err := models.CreateNewMarket(event.Data.question, event.Data.time); err != nil {
+		if err := models.CreateNewMarket(event.Data.Question, event.Data.Time); err != nil {
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusOK)
 			json.NewEncoder(w).Encode(map[string]string{
