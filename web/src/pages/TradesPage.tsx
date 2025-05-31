@@ -85,7 +85,7 @@ export const TradesPage = (): React.ReactElement => {
         </div>
 
         <div className="w-full md:w-80 bg-[#14151B] rounded-md p-4" style={{ height: 'calc(80px + 70vh)' }}>
-          <OrderModal />
+          <OrderModal id={id} />
         </div>
       </div>
     </div>

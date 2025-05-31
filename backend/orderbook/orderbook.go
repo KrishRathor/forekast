@@ -80,7 +80,7 @@ func (ob *Orderbook) PlaceOrder(order LimitOrder) []Trade {
 	if order.Yes {
 		trades = ob.match(
 			ob.NoOrders, ob.NoHeap, &order,
-			func(bid, ask float64) bool { return bid+ask >= 1.0 },
+			func(bid, ask float64) bool { return bid+ask >= 100.0 },
 			true,
 		)
 		if order.Quantity > 0 {
@@ -89,7 +89,7 @@ func (ob *Orderbook) PlaceOrder(order LimitOrder) []Trade {
 	} else {
 		trades = ob.match(
 			ob.YesOrders, ob.YesHeap, &order,
-			func(ask, bid float64) bool { return ask+bid >= 1.0 },
+			func(ask, bid float64) bool { return ask+bid >= 100.0 },
 			false,
 		)
 		if order.Quantity > 0 {
@@ -173,9 +173,9 @@ func selectYesBuyer(a, b *LimitOrder, isBuyYes bool) string {
 
 func getYesPrice(a, b *LimitOrder, isBuyYes bool) float64 {
 	if isBuyYes {
-		return min(a.Price, 1-b.Price)
+		return min(a.Price, 100-b.Price)
 	}
-	return min(b.Price, 1-a.Price)
+	return min(b.Price, 100-a.Price)
 }
 
 func selectNoBuyer(a, b *LimitOrder, isBuyYes bool) string {

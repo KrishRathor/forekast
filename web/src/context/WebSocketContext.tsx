@@ -4,6 +4,7 @@ type WebSocketContextType = {
   socket: WebSocket | null;
   sendMessage: (msg: string) => void;
   subscribeToOrderbook: (marketID: string) => void;
+  placeLimitOrder: (marketID: string, userID: string, quantity: number, price: number, yes: boolean) => void
   ready: boolean
 };
 
@@ -65,8 +66,24 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   }
 
+  const placeLimitOrder = (marketID: string, userID: string, quantity: number, price: number, yes: boolean) => {
+    if (socketRef.current?.readyState === WebSocket.OPEN) {
+      const payload = {
+        type: "order",
+        data: {
+          marketid: marketID,
+          userid: userID,
+          quantity,
+          price,
+          yes
+        }
+      }
+      socketRef.current.send(JSON.stringify(payload))
+    }
+  }
+
   return (
-    <WebSocketContext.Provider value={{ socket, sendMessage, subscribeToOrderbook, ready }}>
+    <WebSocketContext.Provider value={{ socket, sendMessage, subscribeToOrderbook, placeLimitOrder, ready }}>
       {children}
     </WebSocketContext.Provider>
   );

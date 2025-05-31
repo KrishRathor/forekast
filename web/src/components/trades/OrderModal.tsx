@@ -1,8 +1,13 @@
-import { SignedIn, SignedOut } from '@clerk/clerk-react'
+import { SignedIn, SignedOut, useAuth} from '@clerk/clerk-react'
 import { useState } from 'react'
 import { ButtonWhite } from '../essentials/Button'
+import { useWebSocket } from '@/context/WebSocketContext'
 
-export const OrderModal = (): React.ReactElement => {
+interface OrderModalProps {
+  id: string
+}
+
+export const OrderModal = (props: OrderModalProps): React.ReactElement => {
   const [selected, setSelected] = useState<'limit' | 'market'>('limit')
 
   return (
@@ -26,7 +31,7 @@ export const OrderModal = (): React.ReactElement => {
       <div>
 
         {
-          selected === "limit" ? <LimitOrder /> : <MarketOrder />
+          selected === "limit" ? <LimitOrder id={props.id} /> : <MarketOrder />
         }
 
       </div>
@@ -34,9 +39,19 @@ export const OrderModal = (): React.ReactElement => {
   )
 }
 
-const LimitOrder = (): React.ReactElement => {
+interface LimitOrderProps {
+  id: string
+}
+
+const LimitOrder = (props: LimitOrderProps): React.ReactElement => {
 
   const [side, setSelectedSide] = useState<'yes' | 'no'>('yes')
+  const [price, setPrice] = useState<number>(0);
+  const [quantity, setQuantity] = useState<number>(0);
+
+  const { placeLimitOrder } = useWebSocket()
+  const auth = useAuth()
+
 
   return (
     <div>
@@ -67,6 +82,7 @@ const LimitOrder = (): React.ReactElement => {
             id="quantity"
             type="number"
             placeholder="0"
+            onChange={(e) => setQuantity(parseInt(e.target.value))}
             className="bg-[#14151B] border border-[#2A2B31] rounded-md p-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
@@ -79,13 +95,21 @@ const LimitOrder = (): React.ReactElement => {
             id="price"
             type="number"
             placeholder="0.00"
+            onChange={(e) => setPrice(parseInt(e.target.value))}
+
             className="bg-[#14151B] border border-[#2A2B31] rounded-md p-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
 
         <div className='flex justify-center mt-4' >
           <SignedIn>
-            <ButtonWhite text='Place Order' onClick={() => { }} />
+            <ButtonWhite text='Place Order'
+              onClick={() => {
+                if (!auth.userId) return;
+                console.log(props.id, auth.userId, quantity, price, side === 'yes')
+                placeLimitOrder(props.id, auth.userId, quantity, price, side === 'yes');
+              }}
+            />
           </SignedIn>
           <SignedOut>
             <ButtonWhite text='Sign Up to Place Order' onClick={() => { }} />

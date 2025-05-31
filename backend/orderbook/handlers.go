@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"sync"
-	"time"
 
+	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 )
 
@@ -41,7 +41,7 @@ func WSHandler(msg []byte, conn *websocket.Conn) error {
 	case TypeInit:
 		// handle init
 	case TypeOrder:
-		return handlePlaceOrder(conn)
+		return handlePlaceLimitOrder(generalData.Data, conn)
 	case TypeCancel:
 	// handle cancel
 	case TypeOrderBook:
@@ -101,53 +101,105 @@ func handleSubscribeOrderBook(msg []byte, conn *websocket.Conn) error {
 }
 
 func BroadcastOrderBookToConn(ob *Orderbook, conn *websocket.Conn) {
-	fmt.Println("broadcast to conn was called with market id: ", ob.MarketID, )
+	fmt.Println("broadcast to conn was called with market id: ", ob.MarketID)
+
+	yesHeapData := make([]float64, len(ob.YesHeap.prices))
+	copy(yesHeapData, ob.YesHeap.prices)
+
+	noHeapData := make([]float64, len(ob.NoHeap.prices))
+	copy(noHeapData, ob.NoHeap.prices)
+
+	yesOrders := make([]map[string]any, 0, len(ob.YesOrders))
+	for price, orders := range ob.YesOrders {
+		yesOrders = append(yesOrders, map[string]any{
+			"price":  price,
+			"orders": orders,
+		})
+	}
+
+	noorders := make([]map[string]any, 0, len(ob.NoOrders))
+	for price, orders := range ob.NoOrders {
+		noorders = append(noorders, map[string]any{
+			"price":  price,
+			"orders": orders,
+		})
+	}
+
 	orderBookSnapshot := map[string]any{
 		"type":         "orderbook:update",
 		"marketID":     ob.MarketID,
-		"yesHeap":      ob.YesHeap,
-		"noHeap":       ob.NoHeap,
+		"yesHeap":      yesHeapData,
+		"noHeap":       noHeapData,
+		"yesorders":    yesOrders,
+		"noorders":     noorders,
 		"currentPrice": ob.LastTradedPrice,
 	}
-
-  fmt.Println(orderBookSnapshot)
 
 	if err := conn.WriteJSON(orderBookSnapshot); err != nil {
 		fmt.Println(err)
 	}
 }
 
-func handlePlaceOrder(conn *websocket.Conn) error {
+type PlaceLimitOrderPayload struct {
+	MarketID string  `json:"marketid"`
+	UserID   string  `json:"userid"`
+	Yes      bool    `json:"yes"`
+	Quantity int     `json:"quantity"`
+	Price    float64 `json:"price"`
+}
 
-	ob := NewOrderBook("market1")
+func handlePlaceLimitOrder(msg []byte, conn *websocket.Conn) error {
 
-	// place a no order
-	noOrder := LimitOrder{
-		ID:        "1",
-		UserID:    "user1no",
-		MarketID:  "market1",
-		Yes:       false,
-		Price:     0.4,
-		Quantity:  5,
-		Timestamp: time.Now(),
+	fmt.Println("inside place order")
+
+	var placeLimitOrderPayload PlaceLimitOrderPayload
+	if err := json.Unmarshal(msg, &placeLimitOrderPayload); err != nil {
+		fmt.Println(err)
+		return CustomErrors.ErrInvalidJson
 	}
-	ob.PlaceOrder(noOrder)
 
-	// place a yes order later
-	yesOrder := LimitOrder{
-		ID:        "2",
-		UserID:    "user2yes",
-		MarketID:  "market1",
-		Yes:       true,
-		Price:     0.7,
-		Quantity:  10,
-		Timestamp: time.Now(),
+	Obmu.Lock()
+	ob, exists := orderbooks[placeLimitOrderPayload.MarketID]
+	Obmu.Unlock()
+
+	if !exists {
+		if err := conn.WriteJSON(map[string]any{
+			"type":    "placeorder",
+			"success": false,
+		}); err != nil {
+			fmt.Println(err)
+		}
 	}
-	ob.PlaceOrder(yesOrder)
 
-	conn.WriteJSON(map[string]string{
-		"message": "success",
-	})
+	fmt.Println(ob.MarketID)
+
+	uuid, err := uuid.NewUUID()
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+
+	order := LimitOrder{
+		ID:       uuid.String(),
+		MarketID: placeLimitOrderPayload.MarketID,
+		UserID:   placeLimitOrderPayload.UserID,
+		Yes:      placeLimitOrderPayload.Yes,
+		Quantity: placeLimitOrderPayload.Quantity,
+		Price:    placeLimitOrderPayload.Price,
+	}
+
+	trades := ob.PlaceOrder(order)
+	fmt.Println("generated order ", ob.YesHeap)
+
+	response := map[string]any{
+		"type":    "placeorder",
+		"success": true,
+		"trades":  trades,
+	}
+
+	if err := conn.WriteJSON(response); err != nil {
+		fmt.Println(err)
+	}
 
 	return nil
 }
@@ -160,13 +212,39 @@ func BroadcastOrderBook(ob *Orderbook) {
 
 	fmt.Println(len(conns))
 
+	yesHeapData := make([]float64, len(ob.YesHeap.prices))
+	copy(yesHeapData, ob.YesHeap.prices)
+
+	noHeapData := make([]float64, len(ob.NoHeap.prices))
+	copy(noHeapData, ob.NoHeap.prices)
+
+	yesOrders := make([]map[string]any, 0, len(ob.YesOrders))
+	for price, orders := range ob.YesOrders {
+		yesOrders = append(yesOrders, map[string]any{
+			"price":  price,
+			"orders": orders,
+		})
+	}
+
+	noorders := make([]map[string]any, 0, len(ob.NoOrders))
+	for price, orders := range ob.NoOrders {
+		noorders = append(noorders, map[string]any{
+			"price":  price,
+			"orders": orders,
+		})
+	}
+
 	orderBookSnapshot := map[string]any{
 		"type":         "orderbook:update",
 		"marketID":     ob.MarketID,
-		"yesHeap":      ob.YesHeap,
-		"noHeap":       ob.NoHeap,
+		"yesHeap":      yesHeapData,
+		"noHeap":       noHeapData,
+		"yesorders":    yesOrders,
+		"noorders":     noorders,
 		"currentPrice": ob.LastTradedPrice,
 	}
+
+	fmt.Println("from braod ", ob.YesHeap)
 
 	for _, conn := range conns {
 		if err := conn.WriteJSON(orderBookSnapshot); err != nil {
