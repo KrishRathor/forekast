@@ -79,6 +79,18 @@ func handleSubscribeOrderBook(msg []byte, conn *websocket.Conn) error {
 	defer submu.Unlock()
 	subscribers[orderbookPayload.MarketID] = append(subscribers[orderbookPayload.MarketID], conn)
 
+	Obmu.Lock()
+	ob, exists := orderbooks[orderbookPayload.MarketID]
+	Obmu.Unlock()
+
+	if exists {
+		BroadcastOrderBookToConn(ob, conn)
+	} else {
+		fmt.Println("no orderbook with market id", orderbookPayload.MarketID, " so creating one")
+		ob := CreateOrderBook(orderbookPayload.MarketID)
+		BroadcastOrderBookToConn(ob, conn)
+	}
+
 	if err := conn.WriteJSON(map[string]string{
 		"message": "subscribed",
 	}); err != nil {
@@ -86,6 +98,23 @@ func handleSubscribeOrderBook(msg []byte, conn *websocket.Conn) error {
 	}
 
 	return nil
+}
+
+func BroadcastOrderBookToConn(ob *Orderbook, conn *websocket.Conn) {
+	fmt.Println("broadcast to conn was called with market id: ", ob.MarketID, )
+	orderBookSnapshot := map[string]any{
+		"type":         "orderbook:update",
+		"marketID":     ob.MarketID,
+		"yesHeap":      ob.YesHeap,
+		"noHeap":       ob.NoHeap,
+		"currentPrice": ob.LastTradedPrice,
+	}
+
+  fmt.Println(orderBookSnapshot)
+
+	if err := conn.WriteJSON(orderBookSnapshot); err != nil {
+		fmt.Println(err)
+	}
 }
 
 func handlePlaceOrder(conn *websocket.Conn) error {
@@ -132,13 +161,11 @@ func BroadcastOrderBook(ob *Orderbook) {
 	fmt.Println(len(conns))
 
 	orderBookSnapshot := map[string]any{
-		"type":     "orderbook:update",
-		"marketID": ob.MarketID,
-		"yesBids":  ob.YesOrders,
-		"noBids":   ob.NoOrders,
-    "yesHeap": ob.YesHeap,
-    "noHeap": ob.NoHeap,
-    "currentPrice": ob.LastTradedPrice,
+		"type":         "orderbook:update",
+		"marketID":     ob.MarketID,
+		"yesHeap":      ob.YesHeap,
+		"noHeap":       ob.NoHeap,
+		"currentPrice": ob.LastTradedPrice,
 	}
 
 	for _, conn := range conns {

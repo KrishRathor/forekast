@@ -1,6 +1,7 @@
 import { Chart } from "@/components/trades/Chart";
 import { OrderBook } from "@/components/trades/Orderbook";
 import { OrderModal } from "@/components/trades/OrderModal";
+import { useWebSocket } from "@/context/WebSocketContext";
 import { useMarketByID } from "@/hooks/market";
 import type React from "react";
 import { useEffect, useState } from "react";
@@ -34,6 +35,13 @@ export const TradesPage = (): React.ReactElement => {
   }, []);
 
   const { marketByID } = useMarketByID(id)
+  const { subscribeToOrderbook, ready } = useWebSocket()
+
+
+  useEffect(() => {
+    if (id) subscribeToOrderbook(id);
+  }, [id, ready]);
+
 
   if (marketByID.data == null) {
     return <div>Invalid ID</div>
@@ -42,6 +50,7 @@ export const TradesPage = (): React.ReactElement => {
   if (marketByID.isLoading) {
     return <div>Loading market...</div>
   }
+
 
   return (
 
@@ -52,7 +61,7 @@ export const TradesPage = (): React.ReactElement => {
           <div className="bg-[#14151B] flex flex-wrap items-center gap-4">
             <img src="faq.png" alt="questionmark" className="w-10 h-10" />
             <p className="text-lg sm:text-xl md:text-2xl font-medium">
-              Q: { marketByID.data.Question }?
+              Q: {marketByID.data.Question}?
             </p>
             <p className={`text-lg md:text-xl ${price >= 50 ? 'text-green-500' : 'text-red-500'}`}>
               ${price}

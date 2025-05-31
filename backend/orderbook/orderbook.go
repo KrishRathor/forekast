@@ -6,6 +6,9 @@ import (
 	"time"
 )
 
+var orderbooks = make(map[string]*Orderbook)
+var Obmu sync.Mutex
+
 type LimitOrder struct {
 	ID        string
 	UserID    string
@@ -53,8 +56,23 @@ func NewOrderBook(marketID string) *Orderbook {
 	}
 }
 
+func CreateOrderBook(marketID string) *Orderbook {
+	ob, exists := orderbooks[marketID]
+	if !exists {
+		ob = NewOrderBook(marketID)
+		orderbooks[marketID] = ob
+		return ob
+	}
+	return ob
+}
+
 func (ob *Orderbook) PlaceOrder(order LimitOrder) []Trade {
 	ob.mu.Lock()
+	ob, exists := orderbooks[order.MarketID]
+	if !exists {
+		ob = NewOrderBook(order.MarketID)
+		orderbooks[order.MarketID] = ob
+	}
 	defer ob.mu.Unlock()
 
 	var trades []Trade

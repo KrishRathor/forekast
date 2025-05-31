@@ -56,6 +56,6 @@ func handleWS(w http.ResponseWriter, r *http.Request) {
 func StartWebSocketServer() {
 	fmt.Println("here")
 	http.HandleFunc("/ws", handleWS)
-	fmt.Println("WebSocket server started at :8000/ws")
+	fmt.Println("WebSocket server started at :8080/ws")
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
