@@ -8,3 +8,15 @@
   color: rgba(255, 255, 255, 0.87);
   background-color: #0E0F14;
 }
+
+
+.order-modal {
+  height: 70vh;
+}
+
+@media (min-width: 768px) {
+  .order-modal {
+    height: calc(80px + 70vh);
+  }
+}
+

@@ -136,6 +136,9 @@ func BroadcastOrderBook(ob *Orderbook) {
 		"marketID": ob.MarketID,
 		"yesBids":  ob.YesOrders,
 		"noBids":   ob.NoOrders,
+    "yesHeap": ob.YesHeap,
+    "noHeap": ob.NoHeap,
+    "currentPrice": ob.LastTradedPrice,
 	}
 
 	for _, conn := range conns {

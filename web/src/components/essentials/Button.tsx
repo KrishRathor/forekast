@@ -29,3 +29,16 @@ export const ButtonBlue = (props: ButtonProps): React.ReactElement => {
   )
 }
 
+
+export const ButtonWhite = (props: ButtonProps): React.ReactElement => {
+  const { text, onClick } = props;
+
+  return (
+    <div>
+      <button onClick={onClick} className={`bg-white text-black hover:bg-gray-300 rounded-md py-2 px-4 cursor-pointer`}  >
+        {text}
+      </button>
+    </div>
+  )
+}
+

@@ -53,7 +53,7 @@ func MarketRoutes() http.Handler {
 
 		if err != nil {
 			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusOK)
+			w.WriteHeader(http.StatusInternalServerError)
 			json.NewEncoder(w).Encode(map[string]string{
 				"message":  "error",
 				"response": err.Error(),
@@ -75,7 +75,7 @@ func MarketRoutes() http.Handler {
 
 		if err != nil {
 			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusOK)
+			w.WriteHeader(http.StatusInternalServerError)
 			json.NewEncoder(w).Encode(map[string]string{
 				"message":  "error",
 				"response": err.Error(),

@@ -33,6 +33,8 @@ type Orderbook struct {
 	YesHeap *PriceHeap
 	NoHeap  *PriceHeap
 
+	LastTradedPrice float64
+
 	mu sync.Mutex
 }
 
@@ -128,6 +130,12 @@ func (ob *Orderbook) match(
 			book[bestPrice] = ordersAtPrice
 		}
 	}
+
+	if len(trades) > 0 {
+		ob.LastTradedPrice = trades[len(trades)-1].YesPrice
+		BroadcastOrderBook(ob)
+	}
+
 	return trades
 }
 
@@ -158,4 +166,26 @@ func selectNoBuyer(a, b *LimitOrder, isBuyYes bool) string {
 	}
 	return a.UserID
 
+}
+
+func (ob *Orderbook) BestYesPrice() (float64, bool) {
+	ob.mu.Lock()
+	defer ob.mu.Unlock()
+
+	if ob.YesHeap.Len() == 0 {
+		return 0, false
+	}
+
+	return ob.YesHeap.prices[0], true
+}
+
+func (ob *Orderbook) BestNoPrice() (float64, bool) {
+	ob.mu.Lock()
+	defer ob.mu.Unlock()
+
+	if ob.NoHeap.Len() == 0 {
+		return 0, false
+	}
+
+	return ob.NoHeap.prices[0], true
 }
