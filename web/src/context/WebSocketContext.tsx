@@ -1,11 +1,17 @@
 import React, { createContext, useContext, useEffect, useRef, useState } from "react";
+import { handleOrderbookUpdateResponse, handlePlaceOrderResponse, handleSubscribeResponse } from "./WebSocketHandlers";
+import type { OrderBookEntry } from "@/components/trades/data";
 
 type WebSocketContextType = {
   socket: WebSocket | null;
   sendMessage: (msg: string) => void;
   subscribeToOrderbook: (marketID: string) => void;
   placeLimitOrder: (marketID: string, userID: string, quantity: number, price: number, yes: boolean) => void
-  ready: boolean
+  ready: boolean;
+  currentPrice: number;
+  yesorderbookData: OrderBookEntry[];
+  noorderbookData: OrderBookEntry[];
+
 };
 
 const WebSocketContext = createContext<WebSocketContextType | undefined>(undefined);
@@ -14,6 +20,10 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const socketRef = useRef<WebSocket | null>(null);
   const [socket, setSocket] = useState<WebSocket | null>(null);
   const [ready, setReady] = useState<boolean>(false);
+  const [currentPrice, setCurrentPrice] = useState<number>(0);
+  const [yesorderbookData, setYesOrderbookData] = useState<OrderBookEntry[]>([]);
+  const [noorderbookData, setNoOrderbookData] = useState<OrderBookEntry[]>([]);
+
 
   useEffect(() => {
     const ws = new WebSocket("http://localhost:8080/ws");
@@ -37,6 +47,29 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
     ws.onmessage = (event) => {
       console.log(event.data)
+      try {
+
+        const parsedData = JSON.parse(event.data)
+
+        const type = parsedData.type;
+
+        switch (type) {
+          case "subscribe":
+            handleSubscribeResponse()
+            break
+          case "orderbook:update":
+            handleOrderbookUpdateResponse(parsedData, setCurrentPrice, setYesOrderbookData, setNoOrderbookData)
+            break
+          case "placeorder":
+            handlePlaceOrderResponse()
+            break
+          default:
+            console.log("i don't know this one")
+        }
+
+      } catch (err) {
+        console.log(err)
+      }
     }
 
     return () => {
@@ -83,7 +116,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   }
 
   return (
-    <WebSocketContext.Provider value={{ socket, sendMessage, subscribeToOrderbook, placeLimitOrder, ready }}>
+    <WebSocketContext.Provider value={{ socket, sendMessage, subscribeToOrderbook, placeLimitOrder, ready, currentPrice, yesorderbookData, noorderbookData }}>
       {children}
     </WebSocketContext.Provider>
   );

@@ -6,11 +6,8 @@ import {
 } from "@tanstack/react-table";
 import {
   type OrderBookEntry,
-  generateYesSideData,
-  generateNoSideData,
-  marketPrice,
 } from "./data";
-import { useEffect, useState } from "react";
+import { useWebSocket } from "@/context/WebSocketContext";
 
 const columnHelper = createColumnHelper<OrderBookEntry>();
 
@@ -19,8 +16,8 @@ const columns = [
     header: () => "Price",
     cell: (info) => info.getValue().toFixed(1),
   }),
-  columnHelper.accessor("size", {
-    header: () => "Size",
+  columnHelper.accessor("quantity", {
+    header: () => "Quantity",
     cell: (info) => info.getValue().toFixed(5),
   }),
   columnHelper.accessor("total", {
@@ -30,30 +27,18 @@ const columns = [
 ];
 
 export function OrderBook() {
-  const [yesData, setYesData] = useState<OrderBookEntry[]>(() =>
-    generateYesSideData(8)
-  );
-  const [noData, setNoData] = useState<OrderBookEntry[]>(() =>
-    generateNoSideData(8)
-  );
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setYesData(generateYesSideData(8));
-      setNoData(generateNoSideData(8));
-    }, 1000);
+  const { yesorderbookData, noorderbookData, currentPrice } = useWebSocket();
 
-    return () => clearInterval(interval);
-  }, []);
 
   const yesTable = useReactTable({
-    data: yesData,
+    data: yesorderbookData,
     columns,
     getCoreRowModel: getCoreRowModel(),
   });
 
   const noTable = useReactTable({
-    data: noData,
+    data: noorderbookData,
     columns,
     getCoreRowModel: getCoreRowModel(),
   });
@@ -95,7 +80,7 @@ export function OrderBook() {
         </table>
 
         <div className="text-center bg-yellow-900 text-yellow-300 py-1 border-y border-gray-600">
-          Market Price: {marketPrice.toFixed(1)}
+          Market Price: {currentPrice.toFixed(1)}
         </div>
 
         <table className="w-full">
