@@ -1,7 +1,6 @@
 package orderbook
 
 import (
-	CustomErrors "backend/internal/errors"
 	"errors"
 	"fmt"
 	"log"
@@ -39,11 +38,11 @@ func handleWS(w http.ResponseWriter, r *http.Request) {
 
 		if err != nil {
 
-			if errors.Is(err, CustomErrors.ErrInvalidJson) {
+			if errors.Is(err, ErrInvalidJson) {
 				continue
 			}
 
-			if errors.Is(err, CustomErrors.ErrWrite) {
+			if errors.Is(err, ErrWrite) {
 				break
 			}
 

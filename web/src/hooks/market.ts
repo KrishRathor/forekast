@@ -52,6 +52,8 @@ const getAllLiveMarkets = async (): Promise<MarketType[]> => {
   const response = await fetch(`${BACKEND_URL}/markets/getAllLiveMarkets`);
   const json = await response.json()
 
+  console.log(json)
+
   if (!response.ok) {
     console.log(json)
   }

@@ -79,12 +79,19 @@ func UserRoutes() http.Handler {
 			fmt.Println("Error while saving users", err)
 		}
 
+		if err := models.AddBalanceToWallet(id, 10000); err != nil {
+			fmt.Println("Error while creating wallet", err)
+		}
+
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusCreated)
 		json.NewEncoder(w).Encode(map[string]string{
 			"message": "success",
 		})
 
+	})
+
+	r.Post("/publish", func(w http.ResponseWriter, r *http.Request) {
 	})
 
 	return r

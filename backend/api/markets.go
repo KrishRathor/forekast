@@ -3,6 +3,7 @@ package api
 import (
 	"backend/internal/models"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -72,6 +73,8 @@ func MarketRoutes() http.Handler {
 
 	r.Get("/getAllLiveMarkets", func(w http.ResponseWriter, r *http.Request) {
 		markets, err := models.GetLiveMarkets()
+
+    fmt.Println(markets)
 
 		if err != nil {
 			w.Header().Set("Content-Type", "application/json")

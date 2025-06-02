@@ -1,6 +1,7 @@
 package models
 
 import (
+	CustomErrors "backend/internal/errors"
 	"errors"
 	"fmt"
 
@@ -12,6 +13,7 @@ type Wallet struct {
 	gorm.Model
 	UserID  string `gorm:"uniqueIndex"`
 	Balance float64
+	Reserve float64
 	User    User `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 }
 
@@ -84,4 +86,38 @@ func AddBalanceToWallet(userID string, balance float64) error {
 		return nil
 	})
 
+}
+
+func ReserveFunds(userId string, amount float64) error {
+	db := ConnectDB()
+
+	sqldb, err := db.DB()
+	if err != nil {
+		fmt.Println("Error: Getting db.DB()")
+	}
+	defer sqldb.Close()
+
+	return db.Transaction(func(tx *gorm.DB) error {
+		var wallet Wallet
+
+		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).Where("user_id = ?", userId).First(&wallet).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return CustomErrors.ErrWalletNotFound
+			}
+			return err
+		}
+
+		if wallet.Balance < amount {
+			return CustomErrors.ErrInsufficientBalance
+		}
+
+		wallet.Balance -= amount
+		wallet.Reserve += amount
+
+		if err := tx.Save(&wallet).Error; err != nil {
+			return err
+		}
+
+		return nil
+	})
 }

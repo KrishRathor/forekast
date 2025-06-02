@@ -14,10 +14,28 @@ type OrderBookUpdate = {
   noorders: OrderLevel[];
 };
 
+export interface Trade {
+  YesBuyer: string;
+  NoBuyer: string;
+  YesPrice: number;
+  Quantity: number;
+  Timestamp: string;
+}
+
+interface TradesResponse {
+  success: boolean;
+  trades: Trade[];
+  alltrades: Trade[]
+  type: string;
+}
 
 
-export const handlePlaceOrderResponse = () => {
-  console.log("place order event")
+export const handlePlaceOrderResponse = (data: any, setTrades: Dispatch<SetStateAction<Trade[]>>) => {
+  console.log("place order event", data)
+  const parsedData = data as TradesResponse
+
+  setTrades(parsedData.alltrades)
+
 }
 
 export const handleSubscribeResponse = () => {

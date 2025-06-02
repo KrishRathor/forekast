@@ -35,7 +35,7 @@ export const TradesPage = (): React.ReactElement => {
   }, []);
 
   const { marketByID } = useMarketByID(id)
-  const { subscribeToOrderbook, ready } = useWebSocket()
+  const { subscribeToOrderbook, ready, currentPrice } = useWebSocket()
 
 
   useEffect(() => {
@@ -64,7 +64,7 @@ export const TradesPage = (): React.ReactElement => {
               Q: {marketByID.data.Question}?
             </p>
             <p className={`text-lg md:text-xl ${price >= 50 ? 'text-green-500' : 'text-red-500'}`}>
-              ${price}
+              ${currentPrice}
             </p>
             <div className="flex flex-col mr-2 text-sm md:text-base ml-auto text-white">
               <p className="opacity-70">24H Change</p>

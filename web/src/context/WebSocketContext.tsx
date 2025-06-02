@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useRef, useState } from "react";
-import { handleOrderbookUpdateResponse, handlePlaceOrderResponse, handleSubscribeResponse } from "./WebSocketHandlers";
+import { handleOrderbookUpdateResponse, handlePlaceOrderResponse, handleSubscribeResponse, type Trade } from "./WebSocketHandlers";
 import type { OrderBookEntry } from "@/components/trades/data";
 
 type WebSocketContextType = {
@@ -11,7 +11,7 @@ type WebSocketContextType = {
   currentPrice: number;
   yesorderbookData: OrderBookEntry[];
   noorderbookData: OrderBookEntry[];
-
+  trades: Trade[];
 };
 
 const WebSocketContext = createContext<WebSocketContextType | undefined>(undefined);
@@ -23,6 +23,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [currentPrice, setCurrentPrice] = useState<number>(0);
   const [yesorderbookData, setYesOrderbookData] = useState<OrderBookEntry[]>([]);
   const [noorderbookData, setNoOrderbookData] = useState<OrderBookEntry[]>([]);
+  const [trades, setTrades] = useState<Trade[]>([])
 
 
   useEffect(() => {
@@ -61,7 +62,9 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
             handleOrderbookUpdateResponse(parsedData, setCurrentPrice, setYesOrderbookData, setNoOrderbookData)
             break
           case "placeorder":
-            handlePlaceOrderResponse()
+            if (parsedData.success == true) {
+              handlePlaceOrderResponse(parsedData, setTrades)
+            }
             break
           default:
             console.log("i don't know this one")
@@ -101,6 +104,9 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   const placeLimitOrder = (marketID: string, userID: string, quantity: number, price: number, yes: boolean) => {
     if (socketRef.current?.readyState === WebSocket.OPEN) {
+
+      console.log("came here")
+
       const payload = {
         type: "order",
         data: {
@@ -116,7 +122,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   }
 
   return (
-    <WebSocketContext.Provider value={{ socket, sendMessage, subscribeToOrderbook, placeLimitOrder, ready, currentPrice, yesorderbookData, noorderbookData }}>
+    <WebSocketContext.Provider value={{ socket, sendMessage, subscribeToOrderbook, placeLimitOrder, ready, currentPrice, yesorderbookData, noorderbookData, trades }}>
       {children}
     </WebSocketContext.Provider>
   );

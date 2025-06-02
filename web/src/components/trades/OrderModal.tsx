@@ -1,7 +1,7 @@
-import { SignedIn, SignedOut, useAuth} from '@clerk/clerk-react'
+import { SignedIn, SignedOut, useAuth } from '@clerk/clerk-react'
 import { useState } from 'react'
 import { ButtonWhite } from '../essentials/Button'
-import { useWebSocket } from '@/context/WebSocketContext'
+import { handlePlaceLimitOrder } from '@/hooks/trades'
 
 interface OrderModalProps {
   id: string
@@ -49,7 +49,7 @@ const LimitOrder = (props: LimitOrderProps): React.ReactElement => {
   const [price, setPrice] = useState<number>(0);
   const [quantity, setQuantity] = useState<number>(0);
 
-  const { placeLimitOrder } = useWebSocket()
+  // const { placeLimitOrder } = useWebSocket()
   const auth = useAuth()
 
 
@@ -104,10 +104,13 @@ const LimitOrder = (props: LimitOrderProps): React.ReactElement => {
         <div className='flex justify-center mt-4' >
           <SignedIn>
             <ButtonWhite text='Place Order'
-              onClick={() => {
+              onClick={async () => {
                 if (!auth.userId) return;
                 console.log(props.id, auth.userId, quantity, price, side === 'yes')
-                placeLimitOrder(props.id, auth.userId, quantity, price, side === 'yes');
+                const token = await auth.getToken()
+                if (!token) return
+                handlePlaceLimitOrder(props.id, price, quantity, token, side === 'yes')
+                // placeLimitOrder(props.id, auth.userId, quantity, price, side === 'yes');
               }}
             />
           </SignedIn>

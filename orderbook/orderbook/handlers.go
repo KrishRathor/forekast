@@ -1,7 +1,6 @@
 package orderbook
 
 import (
-	CustomErrors "backend/internal/errors"
 	"encoding/json"
 	"fmt"
 	"sync"
@@ -34,7 +33,7 @@ func WSHandler(msg []byte, conn *websocket.Conn) error {
 	var generalData GeneralData
 	if err := json.Unmarshal(msg, &generalData); err != nil {
 		fmt.Println(err)
-		return CustomErrors.ErrInvalidJson
+		return ErrInvalidJson
 	}
 
 	switch generalData.Type {
@@ -48,13 +47,13 @@ func WSHandler(msg []byte, conn *websocket.Conn) error {
 		fmt.Println("type orderbook")
 		return handleSubscribeOrderBook(generalData.Data, conn)
 	default:
-		return CustomErrors.ErrInvalidType
+		return ErrInvalidType
 	}
 
 	if err := conn.WriteJSON(map[string]string{
 		"message": "success",
 	}); err != nil {
-		return CustomErrors.ErrWrite
+		return ErrWrite
 	}
 
 	return nil
@@ -70,7 +69,7 @@ func handleSubscribeOrderBook(msg []byte, conn *websocket.Conn) error {
 	var orderbookPayload OrderBookPayload
 	if err := json.Unmarshal(msg, &orderbookPayload); err != nil {
 		fmt.Println(err)
-		return CustomErrors.ErrInvalidJson
+		return ErrInvalidJson
 	}
 
 	fmt.Println("adding ", conn, " in map")
@@ -94,7 +93,7 @@ func handleSubscribeOrderBook(msg []byte, conn *websocket.Conn) error {
 	if err := conn.WriteJSON(map[string]string{
 		"type": "subscribe",
 	}); err != nil {
-		return CustomErrors.ErrWrite
+		return ErrWrite
 	}
 
 	return nil
@@ -115,7 +114,7 @@ func handlePlaceLimitOrder(msg []byte, conn *websocket.Conn) error {
 	var placeLimitOrderPayload PlaceLimitOrderPayload
 	if err := json.Unmarshal(msg, &placeLimitOrderPayload); err != nil {
 		fmt.Println(err)
-		return CustomErrors.ErrInvalidJson
+		return ErrInvalidJson
 	}
 
 	Obmu.Lock()
@@ -151,14 +150,21 @@ func handlePlaceLimitOrder(msg []byte, conn *websocket.Conn) error {
 	trades := PlaceOrder(order)
 	fmt.Println("generated order ", ob.YesHeap)
 
+	submu.Lock()
+	conns := subscribers[placeLimitOrderPayload.MarketID]
+	submu.Unlock()
+
 	response := map[string]any{
 		"type":    "placeorder",
 		"success": true,
 		"trades":  trades,
+    	"alltrades": GetAllTrades(),
 	}
 
-	if err := conn.WriteJSON(response); err != nil {
-		fmt.Println(err)
+	for _, conn := range conns {
+		if err := conn.WriteJSON(response); err != nil {
+			fmt.Println(err)
+		}
 	}
 
 	return nil

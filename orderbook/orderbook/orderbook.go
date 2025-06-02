@@ -87,6 +87,11 @@ var (
 	Obmu       sync.Mutex
 )
 
+var (
+	allTrades []Trade
+	tradesMu  sync.Mutex
+)
+
 func CreateOrderBook(marketID string) *Orderbook {
 	Obmu.Lock()
 	defer Obmu.Unlock()
@@ -252,6 +257,11 @@ func PlaceOrder(order LimitOrder) []Trade {
 	}
 
 	BroadcastOrderBook(ob)
+	if len(trades) > 0 {
+		tradesMu.Lock()
+		allTrades = append(allTrades, trades...)
+		tradesMu.Unlock()
+	}
 	return trades
 }
 
@@ -265,4 +275,10 @@ func (ob *Orderbook) BestNoPrice() (float64, bool) {
 	ob.mu.Lock()
 	defer ob.mu.Unlock()
 	return ob.NoHeap.Peek()
+}
+
+func GetAllTrades() []Trade {
+	tradesMu.Lock()
+	defer tradesMu.Unlock()
+	return append([]Trade(nil), allTrades...)
 }

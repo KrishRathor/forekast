@@ -1,4 +1,4 @@
-package CustomErrors 
+package orderbook
 
 import "errors"
 
@@ -6,6 +6,4 @@ var (
   ErrInvalidJson = errors.New("invalid json")
   ErrWrite = errors.New("cannot write")
   ErrInvalidType = errors.New("invlaid type")
-  ErrInsufficientBalance = errors.New("ErrInsufficientBalance")
-  ErrWalletNotFound = errors.New("ErrWalletNotFound")
 )

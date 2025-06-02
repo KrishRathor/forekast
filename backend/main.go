@@ -2,11 +2,11 @@ package main
 
 import (
 	"backend/api"
-	"backend/orderbook"
+	// "backend/orderbook"
 )
 
 func main() {
-	go orderbook.StartWebSocketServer()
+	// go orderbook.StartWebSocketServer()
 	api.CreateServer()
 
 }

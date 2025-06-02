@@ -6,12 +6,11 @@ import (
 	"os"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
+	ChiMiddleware "github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
 	"github.com/joho/godotenv"
 
 	"github.com/clerk/clerk-sdk-go/v2"
-	clerkhttp "github.com/clerk/clerk-sdk-go/v2/http"
 )
 
 func CreateServer() {
@@ -38,11 +37,12 @@ func CreateServer() {
 		MaxAge:           300, // Maximum value not ignored by any browser
 	}))
 
-	r.Use(middleware.Logger)
+	r.Use(ChiMiddleware.Logger)
+	r.Use(middleware.WithSession(client))
 
 	r.Mount("/api/v1/users", UserRoutes())
 	r.Mount("/api/v1/markets", MarketRoutes())
-	r.Mount("/api/v1/wallet", clerkhttp.WithHeaderAuthorization()(WalletRoutes()))
+	r.Mount("/api/v1/wallet", WalletRoutes())
 
 	http.ListenAndServe(":3000", r)
 }
