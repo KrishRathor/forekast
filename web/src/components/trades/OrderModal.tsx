@@ -108,8 +108,9 @@ const LimitOrder = (props: LimitOrderProps): React.ReactElement => {
                 if (!auth.userId) return;
                 console.log(props.id, auth.userId, quantity, price, side === 'yes')
                 const token = await auth.getToken()
+                console.log(token)
                 if (!token) return
-                handlePlaceLimitOrder(props.id, price, quantity, token, side === 'yes')
+                handlePlaceLimitOrder(props.id, price, quantity, auth.userId, side === 'yes')
                 // placeLimitOrder(props.id, auth.userId, quantity, price, side === 'yes');
               }}
             />

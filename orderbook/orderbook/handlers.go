@@ -155,10 +155,10 @@ func handlePlaceLimitOrder(msg []byte, conn *websocket.Conn) error {
 	submu.Unlock()
 
 	response := map[string]any{
-		"type":    "placeorder",
-		"success": true,
-		"trades":  trades,
-    	"alltrades": GetAllTrades(),
+		"type":      "placeorder",
+		"success":   true,
+		"trades":    trades,
+		"alltrades": GetAllTrades(),
 	}
 
 	for _, conn := range conns {

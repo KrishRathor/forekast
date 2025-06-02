@@ -17,15 +17,18 @@ export const handlePlaceLimitOrder = async (marketid: string, price: number, qua
 
   const response = await fetch(`${BACKEND_URL}/wallet/placeLimitOrder`, {
     headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
     },
     method: 'POST',
     body: JSON.stringify({
-      marketid,
-      yes,
-      price,
-      quantity
+      data: {
+        userid: token,
+        marketid,
+        price,
+        quantity,
+        yes
+      }
     })
   })
   const json = await response.json()

@@ -19,8 +19,11 @@ type BalanceUpdatedEvent struct {
 	} `json:"data"`
 }
 
+
+
 type PlaceLimitOrderEvent struct {
 	Data struct {
+		UserID   string  `json:"userid"`
 		MarketID string  `json:"marketid"`
 		Yes      bool    `json:"yes"`
 		Quantity int     `json:"quantity"`
@@ -116,23 +119,7 @@ func WalletRoutes() http.Handler {
 	})
 
 	r.Post("/placeLimitOrder", func(w http.ResponseWriter, r *http.Request) {
-		claims, ok := clerk.SessionClaimsFromContext(r.Context())
-		fmt.Println("here insdie place order0")
-
-		if !ok {
-			fmt.Println("here")
-			w.WriteHeader(http.StatusUnauthorized)
-			w.Write([]byte(`{"access": "unauthorized"}`))
-			return
-		}
-
-		usr, err := user.Get(r.Context(), claims.Subject)
-
-		if err != nil {
-			w.WriteHeader(http.StatusUnauthorized)
-			w.Write([]byte(`{"access": "unauthorized"}`))
-			return
-		}
+		fmt.Println("here i am")
 
 		fmt.Println("here insdie place order")
 
@@ -145,7 +132,7 @@ func WalletRoutes() http.Handler {
 
 		amountRequired := event.Data.Price * float64(event.Data.Quantity)
 
-		err = models.ReserveFunds(usr.ID, amountRequired)
+		err := models.ReserveFunds(event.Data.UserID, amountRequired)
 
 		if err != nil {
 			switch err {
@@ -164,23 +151,16 @@ func WalletRoutes() http.Handler {
 			}
 		}
 
-		payload := map[string]any{
-			"type": "place:limit:order",
-			"data": map[string]any{
-				"userid":   usr.ID,
-				"marketid": event.Data.MarketID,
-				"yes":      event.Data.Yes,
-				"quantity": event.Data.Quantity,
-				"price":    event.Data.Price,
-			},
+		payload := CustomErrors.Payload{
+			Type:     "place:limit:order",
+			MarketID: event.Data.MarketID,
+			UserID:   event.Data.UserID,
+			Yes:      event.Data.Yes,
+			Price:    event.Data.Price,
+			Quantity: event.Data.Quantity,
 		}
 
-		payloadBytes, err := json.Marshal(payload)
-		if err != nil {
-			fmt.Println(err)
-		}
-
-		err = redis.Publish(string(payloadBytes))
+		err = redis.Publish(payload)
 		if err != nil {
 			fmt.Println(err)
 		}

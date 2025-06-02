@@ -1,6 +1,7 @@
 package redis
 
 import (
+	CustomErrors "backend/internal/errors"
 	"context"
 	"crypto/hmac"
 	"crypto/sha256"
@@ -16,7 +17,7 @@ import (
 var ctx = context.Background()
 
 type Message struct {
-	Payload   string `json:"payload"`
+	Payload   CustomErrors.Payload `json:"payload"`
 	Signature string `json:"signature"`
 }
 
@@ -26,7 +27,7 @@ func sign(payload, redisSecret string) string {
 	return hex.EncodeToString(h.Sum(nil))
 }
 
-func Publish(payload string) error {
+func Publish(payload CustomErrors.Payload) error {
 	if err := godotenv.Load(); err != nil {
 		fmt.Println("can't load env file")
 	}
@@ -50,7 +51,7 @@ func Publish(payload string) error {
 		Addr: redisAddr,
 	})
 
-	sig := sign(payload, redisSecret)
+	sig := sign(payload.MarketID + payload.UserID, redisSecret)
 	msg := Message{
 		Payload:   payload,
 		Signature: sig,

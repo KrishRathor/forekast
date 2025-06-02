@@ -10,15 +10,25 @@ import (
 	"log"
 	"os"
 
+	"github.com/google/uuid"
 	"github.com/joho/godotenv"
 	"github.com/redis/go-redis/v9"
 )
 
 var ctx = context.Background()
 
+type Payload struct {
+	MarketID string  `json:"marketid"`
+	UserID   string  `json:"userid"`
+	Yes      bool    `json:"yes"`
+	Price    float64 `json:"price"`
+	Quantity int     `json:"quantity"`
+	Type     string  `json:"type"`
+}
+
 type Message struct {
-	Payload   string `json:"payload"`
-	Signature string `json:"signature"`
+	Payload   Payload `json:"payload"`
+	Signature string  `json:"signature"`
 }
 
 func verifySignature(payload, signature, sharedSecret string) bool {
@@ -73,16 +83,58 @@ func Subscribe() {
 			continue
 		}
 
-		if verifySignature(received.Payload, received.Signature, redisSecret) {
+		if verifySignature(received.Payload.MarketID+received.Payload.UserID, received.Signature, redisSecret) {
 			log.Println("Verified message:", received.Payload)
 
-			var parsedPayload map[string]any
-			if err := json.Unmarshal([]byte(received.Payload), &parsedPayload); err != nil {
-				log.Fatal(err)
-			}
+			if received.Payload.Type == "place:limit:order" {
+				fmt.Println(received.Payload.MarketID, received.Payload.UserID, received.Payload.Price, received.Payload.Quantity)
 
-			fmt.Println("Payload Type:", parsedPayload["type"])
-			fmt.Println("Payload Data:", parsedPayload["data"])
+				Obmu.Lock()
+				ob, exists := orderbooks[received.Payload.MarketID]
+				Obmu.Unlock()
+
+				if !exists {
+					if err := rdb.Publish(ctx, "ch2:ws->http", "invalid market id").Err(); err != nil {
+						fmt.Println(err)
+					}
+				}
+
+				fmt.Println(ob.MarketID)
+
+				uuid, err := uuid.NewUUID()
+				if err != nil {
+					fmt.Println(err)
+				}
+
+				order := LimitOrder{
+					ID:       uuid.String(),
+					MarketID: received.Payload.MarketID,
+					UserID:   received.Payload.UserID,
+					Yes:      received.Payload.Yes,
+					Quantity: received.Payload.Quantity,
+					Price:    received.Payload.Price,
+				}
+
+				trades := PlaceOrder(order)
+
+				submu.Lock()
+				conns := subscribers[received.Payload.MarketID]
+				submu.Unlock()
+
+				response := map[string]any{
+					"type":      "placeorder",
+					"success":   true,
+					"trades":    trades,
+					"alltrades": GetAllTrades(),
+				}
+
+				for _, conn := range conns {
+					if err := conn.WriteJSON(response); err != nil {
+						fmt.Println(err)
+					}
+				}
+
+			}
 
 		} else {
 			log.Println("Invalid signature")
