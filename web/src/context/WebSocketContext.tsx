@@ -65,8 +65,13 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
               handlePlaceOrderResponse(parsedData, setTrades)
             }
             break
+          case "trades":
+            if (parsedData.success == true) {
+              handlePlaceOrderResponse(parsedData, setTrades)
+            }
+            break
           default:
-           // handle this
+          // handle this
         }
 
       } catch (err) {

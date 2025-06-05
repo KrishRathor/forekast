@@ -92,6 +92,15 @@ func handleSubscribeOrderBook(msg []byte, conn *websocket.Conn) error {
 		return ErrWrite
 	}
 
+	if err := conn.WriteJSON(map[string]any{
+		"type":      "trades",
+		"success":   true,
+		"alltrades": GetAllTrades(),
+	}); err != nil {
+		fmt.Println(err)
+		return ErrWrite
+	}
+
 	return nil
 }
 
@@ -151,7 +160,7 @@ func handlePlaceLimitOrder(msg []byte, conn *websocket.Conn) error {
 	submu.Unlock()
 
 	response := map[string]any{
-		"type":      "placeorder",
+		"type":      "trades",
 		"success":   true,
 		"alltrades": GetAllTrades(),
 	}
@@ -266,7 +275,7 @@ func BroadcastOrderBook(ob *Orderbook) {
 	}
 
 	response := map[string]any{
-		"type":      "placeorder",
+		"type":      "trades",
 		"success":   true,
 		"alltrades": GetAllTrades(),
 	}

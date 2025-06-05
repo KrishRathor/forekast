@@ -64,8 +64,8 @@ func WalletRoutes() http.Handler {
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(map[string]any{
 			"message": "success",
-      "balance": balance,
-      "reserve": reserve,
+			"balance": balance,
+			"reserve": reserve,
 		})
 
 	})

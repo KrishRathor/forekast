@@ -83,8 +83,8 @@ func CreateTransaction(userID string, tradeID uint, amount float64) (*Transactio
 	if amount >= 0 {
 		AddBalanceToWallet(userID, amount)
 	} else {
-    GetMoneyFromWallet(userID, amount)
-  }
+		GetMoneyFromWallet(userID, amount)
+	}
 
 	txn := Transaction{
 		UserID:  userID,
