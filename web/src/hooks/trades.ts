@@ -13,8 +13,6 @@ export const usePlaceLimitOrder = (marketid: string, price: number, quantity: nu
 
 export const handlePlaceLimitOrder = async (marketid: string, price: number, quantity: number, token: string, yes: boolean) => {
 
-  console.log("inside place limit order hook: ", marketid, price, quantity, token)
-
   const response = await fetch(`${BACKEND_URL}/wallet/placeLimitOrder`, {
     headers: {
       'Content-Type': 'application/json',
@@ -31,9 +29,6 @@ export const handlePlaceLimitOrder = async (marketid: string, price: number, qua
       }
     })
   })
-  const json = await response.json()
-
-  console.log("inside handlePlaceLimitOrder: ", json)
+  await response.json()
   return ""
-
 }

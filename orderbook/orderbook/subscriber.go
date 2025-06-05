@@ -97,6 +97,7 @@ func Subscribe() {
 					if err := rdb.Publish(ctx, "ch2:ws->http", "invalid market id").Err(); err != nil {
 						fmt.Println(err)
 					}
+					continue
 				}
 
 				fmt.Println(ob.MarketID)
@@ -124,7 +125,6 @@ func Subscribe() {
 				response := map[string]any{
 					"type":      "placeorder",
 					"success":   true,
-					"trades":    trades,
 					"alltrades": GetAllTrades(),
 				}
 
@@ -132,6 +132,22 @@ func Subscribe() {
 					if err := conn.WriteJSON(response); err != nil {
 						fmt.Println(err)
 					}
+				}
+
+				fmt.Println("sending data...")
+				dataToSend := map[string]any{
+					"marketid": received.Payload.MarketID,
+					"trades":   trades,
+				}
+
+				data, err := json.Marshal(dataToSend)
+				if err != nil {
+					fmt.Println("Failed to marshal data:", err)
+					return
+				}
+
+				if err := rdb.Publish(ctx, "ch2:ws->http", data).Err(); err != nil {
+					fmt.Println("Failed to publish trades:", err)
 				}
 
 			}

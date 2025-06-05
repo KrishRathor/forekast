@@ -156,7 +156,6 @@ func PlaceOrder(order LimitOrder) []Trade {
 
 		for order.Quantity > 0 {
 			bestNoPrice, ok := ob.NoHeap.Peek()
-			fmt.Println("place order 4: ", bestNoPrice)
 
 			if !ok {
 				break
@@ -164,8 +163,6 @@ func PlaceOrder(order LimitOrder) []Trade {
 			if bestNoPrice < 100-order.Price {
 				break
 			}
-
-			fmt.Println("place order 5: ", bestNoPrice)
 
 			ordersAtPrice := ob.NoOrders[bestNoPrice]
 			for len(ordersAtPrice) > 0 && order.Quantity > 0 {

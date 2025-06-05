@@ -1,6 +1,6 @@
 import { useWebSocket } from '@/context/WebSocketContext';
 import { useEffect, useState, type ReactElement } from 'react';
-import { LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, AreaChart, Area, } from 'recharts';
+import { XAxis, YAxis, Tooltip, CartesianGrid, AreaChart, Area, ResponsiveContainer, } from 'recharts';
 
 interface DataType {
   time: string,
@@ -23,7 +23,6 @@ export const Chart = (): ReactElement => {
       }
     })
     setData(_ => d)
-    console.log("trades: ", trades, " data: ", data)
 
   }, [trades])
 
@@ -31,20 +30,22 @@ export const Chart = (): ReactElement => {
 
 
   return (
-    <div className="mt-10">
-      <AreaChart width={1000} height={600} data={data}>
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="time" interval={1} />
-        <YAxis domain={['auto', 'auto']} interval={1} />
-        <Tooltip />
-        <Area
-          type="monotone"
-          dataKey="price"
-          stroke="#00C951"
-          fill="#091F1A"
-          dot={false}
-        />
-      </AreaChart>
+    <div className="w-full mt-10 h-[400px] sm:h-[500px] md:h-[600px]">
+      <ResponsiveContainer width="100%" height="100%">
+        <AreaChart data={data}>
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey="time" interval={1} />
+          <YAxis domain={['auto', 'auto']} interval={1} />
+          <Tooltip />
+          <Area
+            type="monotone"
+            dataKey="price"
+            stroke="#00C951"
+            fill="#091F1A"
+            dot={false}
+          />
+        </AreaChart>
+      </ResponsiveContainer>
     </div>
   )
 }

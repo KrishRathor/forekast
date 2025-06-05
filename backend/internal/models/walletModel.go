@@ -17,6 +17,16 @@ type Wallet struct {
 	User    User `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 }
 
+type Reserve struct {
+	gorm.Model
+	UserID   string `gorm:"index"`
+	MarketID string `gorm:"index"`
+	Reserve  float64
+
+	User   User   `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
+	Market Market `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
+}
+
 func GetMoneyFromWallet(userId string, balance float64) error {
 	db := ConnectDB()
 
@@ -35,10 +45,10 @@ func GetMoneyFromWallet(userId string, balance float64) error {
 			return err
 		}
 
-		if wallet.Balance < balance {
+		if wallet.Reserve < balance {
 			return errors.New("insufficient balance")
 		} else {
-			wallet.Balance -= balance
+			wallet.Reserve -= balance
 			if err := tx.Save(&wallet).Error; err != nil {
 				return err
 			}
@@ -88,7 +98,7 @@ func AddBalanceToWallet(userID string, balance float64) error {
 
 }
 
-func ReserveFunds(userId string, amount float64) error {
+func ReserveFunds(userId string, marketId string, amount float64) error {
 	db := ConnectDB()
 
 	sqldb, err := db.DB()
@@ -118,6 +128,35 @@ func ReserveFunds(userId string, amount float64) error {
 			return err
 		}
 
+		marketReserve := Reserve{
+			UserID:   userId,
+			MarketID: marketId,
+			Reserve:  amount,
+		}
+
+		if err := tx.Create(&marketReserve).Error; err != nil {
+			return err
+		}
+
 		return nil
 	})
+}
+
+func GetWalletBalanceAndReserve(userID string) (balance float64, reserve float64, err error) {
+	db := ConnectDB()
+	sqlDB, err := db.DB()
+	if err != nil {
+		return 0, 0, err
+	}
+	defer sqlDB.Close()
+
+	var wallet Wallet
+	if err := db.Where("user_id = ?", userID).First(&wallet).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return 0, 0, CustomErrors.ErrWalletNotFound
+		}
+		return 0, 0, err
+	}
+
+	return wallet.Balance, wallet.Reserve, nil
 }

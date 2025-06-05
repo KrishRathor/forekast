@@ -24,14 +24,12 @@ export interface Trade {
 
 interface TradesResponse {
   success: boolean;
-  trades: Trade[];
   alltrades: Trade[]
   type: string;
 }
 
 
 export const handlePlaceOrderResponse = (data: any, setTrades: Dispatch<SetStateAction<Trade[]>>) => {
-  console.log("place order event", data)
   const parsedData = data as TradesResponse
 
   setTrades(parsedData.alltrades)
@@ -39,7 +37,7 @@ export const handlePlaceOrderResponse = (data: any, setTrades: Dispatch<SetState
 }
 
 export const handleSubscribeResponse = () => {
-  console.log("subscribe event")
+  // TODO: do something here
 }
 
 export const handleOrderbookUpdateResponse = (
@@ -49,7 +47,6 @@ export const handleOrderbookUpdateResponse = (
   setNoOrderbookData: Dispatch<SetStateAction<OrderLevel[]>>
 
 ) => {
-  console.log("orderbook update event")
   const parsedData = data as OrderBookUpdate
 
   setCurrentPrice(parsedData.currentPrice)

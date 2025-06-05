@@ -28,8 +28,6 @@ type GeneralData struct {
 
 func WSHandler(msg []byte, conn *websocket.Conn) error {
 
-	fmt.Println("recieved msg: ", msg)
-
 	var generalData GeneralData
 	if err := json.Unmarshal(msg, &generalData); err != nil {
 		fmt.Println(err)
@@ -71,8 +69,6 @@ func handleSubscribeOrderBook(msg []byte, conn *websocket.Conn) error {
 		fmt.Println(err)
 		return ErrInvalidJson
 	}
-
-	fmt.Println("adding ", conn, " in map")
 
 	submu.Lock()
 	defer submu.Unlock()
@@ -147,7 +143,7 @@ func handlePlaceLimitOrder(msg []byte, conn *websocket.Conn) error {
 		Price:    placeLimitOrderPayload.Price,
 	}
 
-	trades := PlaceOrder(order)
+	PlaceOrder(order)
 	fmt.Println("generated order ", ob.YesHeap)
 
 	submu.Lock()
@@ -157,7 +153,6 @@ func handlePlaceLimitOrder(msg []byte, conn *websocket.Conn) error {
 	response := map[string]any{
 		"type":      "placeorder",
 		"success":   true,
-		"trades":    trades,
 		"alltrades": GetAllTrades(),
 	}
 
@@ -264,7 +259,21 @@ func BroadcastOrderBook(ob *Orderbook) {
 	}
 
 	for _, conn := range conns {
+		fmt.Println("sending orderbook")
 		if err := conn.WriteJSON(orderBookSnapshot); err != nil {
+			fmt.Println(err)
+		}
+	}
+
+	response := map[string]any{
+		"type":      "placeorder",
+		"success":   true,
+		"alltrades": GetAllTrades(),
+	}
+
+	for _, conn := range conns {
+		fmt.Println("sending trades to ")
+		if err := conn.WriteJSON(response); err != nil {
 			fmt.Println(err)
 		}
 	}

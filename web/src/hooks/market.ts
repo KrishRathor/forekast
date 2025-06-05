@@ -40,7 +40,7 @@ const getMarketByID = async (id: string): Promise<MarketType | null> => {
   const json = await response.json()
 
   if (!response.ok) {
-    console.log(json)
+    // handle here
     return null
   }
 
@@ -52,10 +52,8 @@ const getAllLiveMarkets = async (): Promise<MarketType[]> => {
   const response = await fetch(`${BACKEND_URL}/markets/getAllLiveMarkets`);
   const json = await response.json()
 
-  console.log(json)
-
   if (!response.ok) {
-    console.log(json)
+    // handle err
   }
 
   return json.response as MarketType[]

@@ -16,8 +16,6 @@ var upgrader = websocket.Upgrader{
 func handleWS(w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 
-	fmt.Println("new connection: ", conn)
-
 	if err != nil {
 		fmt.Println(err)
 		return

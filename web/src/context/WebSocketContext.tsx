@@ -47,7 +47,6 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     };
 
     ws.onmessage = (event) => {
-      console.log(event.data)
       try {
 
         const parsedData = JSON.parse(event.data)
@@ -67,11 +66,11 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
             }
             break
           default:
-            console.log("i don't know this one")
+           // handle this
         }
 
       } catch (err) {
-        console.log(err)
+        // TODO: hanlde err
       }
     }
 
@@ -88,10 +87,8 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   };
 
   const subscribeToOrderbook = (marketID: string) => {
-    console.log('yo')
 
     if (socketRef.current?.readyState === WebSocket.OPEN) {
-      console.log('here')
       const payload = {
         type: "subscribe:orderbook",
         data: {
@@ -104,8 +101,6 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   const placeLimitOrder = (marketID: string, userID: string, quantity: number, price: number, yes: boolean) => {
     if (socketRef.current?.readyState === WebSocket.OPEN) {
-
-      console.log("came here")
 
       const payload = {
         type: "order",

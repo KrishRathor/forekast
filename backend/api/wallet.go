@@ -19,8 +19,6 @@ type BalanceUpdatedEvent struct {
 	} `json:"data"`
 }
 
-
-
 type PlaceLimitOrderEvent struct {
 	Data struct {
 		UserID   string  `json:"userid"`
@@ -34,6 +32,43 @@ type PlaceLimitOrderEvent struct {
 func WalletRoutes() http.Handler {
 
 	r := chi.NewRouter()
+
+	r.Post("/getBalanceAndReserve", func(w http.ResponseWriter, r *http.Request) {
+		claims, ok := clerk.SessionClaimsFromContext(r.Context())
+
+		if !ok {
+			fmt.Println("here")
+			w.WriteHeader(http.StatusUnauthorized)
+			w.Write([]byte(`{"access": "unauthorized"}`))
+			return
+		}
+
+		usr, err := user.Get(r.Context(), claims.Subject)
+
+		if err != nil {
+			w.WriteHeader(http.StatusUnauthorized)
+			w.Write([]byte(`{"access": "unauthorized"}`))
+			return
+		}
+
+		balance, reserve, err2 := models.GetWalletBalanceAndReserve(usr.ID)
+
+		if err2 != nil {
+			fmt.Println(err)
+			w.WriteHeader(http.StatusUnauthorized)
+			w.Write([]byte(`{"message": "err while gettting funds"}`))
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(map[string]any{
+			"message": "success",
+      "balance": balance,
+      "reserve": reserve,
+		})
+
+	})
 
 	r.Post("/subtractBalance", func(w http.ResponseWriter, r *http.Request) {
 		claims, ok := clerk.SessionClaimsFromContext(r.Context())
@@ -119,9 +154,7 @@ func WalletRoutes() http.Handler {
 	})
 
 	r.Post("/placeLimitOrder", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println("here i am")
-
-		fmt.Println("here insdie place order")
+		fmt.Println("insdie place order")
 
 		var event PlaceLimitOrderEvent
 
@@ -132,7 +165,7 @@ func WalletRoutes() http.Handler {
 
 		amountRequired := event.Data.Price * float64(event.Data.Quantity)
 
-		err := models.ReserveFunds(event.Data.UserID, amountRequired)
+		err := models.ReserveFunds(event.Data.UserID, event.Data.MarketID, amountRequired)
 
 		if err != nil {
 			switch err {

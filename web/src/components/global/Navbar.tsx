@@ -1,13 +1,34 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Menu, X } from 'lucide-react';
-import { SignedIn, SignedOut, useClerk } from '@clerk/clerk-react';
+import { SignedIn, SignedOut, useAuth, useClerk } from '@clerk/clerk-react';
 import { ButtonBlue, ButtonGreen } from '../essentials/Button';
 import { Search } from './Search';
 import { Link } from 'react-router-dom';
+import { handleGetBalanceAndReserve, } from '@/hooks/balance';
+import { useRecoilValue, useSetRecoilState } from 'recoil';
+import { walletState } from '@/store/balance';
 
 const Navbar = () => {
   const [open, setOpen] = useState(false);
   const { openSignUp, signOut } = useClerk();
+
+  const { getToken } = useAuth();
+
+  const { balance } = useRecoilValue(walletState)
+  const setWallet = useSetRecoilState(walletState)
+
+  useEffect(() => {
+    const getBalance = async () => {
+      const token = await getToken()
+      if (!token) return
+      const { balance, reserve } = await handleGetBalanceAndReserve(token)
+      setWallet({
+        balance,
+        reserve
+      })
+    }
+    getBalance()
+  }, [])
 
   return (
     <nav className="w-full bg-inherit shadow-md px-4 py-3 flex items-center justify-between relative">
@@ -30,7 +51,12 @@ const Navbar = () => {
           <ButtonBlue text="SignUp" onClick={() => openSignUp()} />
         </SignedOut>
         <SignedIn>
-          <ButtonGreen text="LogOut" onClick={() => signOut()} />
+          <div className="flex items-center gap-3">
+            <span className="text-white font-semibold">
+              {balance}
+            </span>
+            <ButtonGreen text="LogOut" onClick={() => signOut()} />
+          </div>
         </SignedIn>
         <button className="md:hidden" onClick={() => setOpen(!open)}>
           {open ? <X /> : <Menu />}
