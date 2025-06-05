@@ -1,27 +1,32 @@
 import { Analytics } from "@/components/dashboard/analytics";
 import { useWebSocket } from "@/context/WebSocketContext";
-import { type Trade } from "@/context/WebSocketHandlers";
+import type { Trade } from "@/context/WebSocketHandlers";
 import { useAuth } from "@clerk/clerk-react";
 import type React from "react";
 import { useEffect, useState } from "react";
 
 export const DashboardPage = (): React.ReactElement => {
 
-  const { trades } = useWebSocket();
   const { userId } = useAuth();
+
+  const { trades } = useWebSocket();
 
   const [userYesTrades, setUserYesTrades] = useState<Trade[]>([]);
   const [userNoTrades, setUserNoTrades] = useState<Trade[]>([]);
 
 
   useEffect(() => {
-    console.log('inside useEffect', trades)
-    const myyestrades = trades.filter(trade => (trade.YesBuyer === userId));
-    const mynotrades = trades.filter(trade => (trade.NoBuyer === userId))
-    setUserYesTrades(myyestrades);
-    setUserNoTrades(mynotrades);
+    const getTrades = async () => {
+      const yes = trades.filter(k => (k.YesBuyer === userId))
+      const no = trades.filter(k => (k.NoBuyer === userId))
+      console.log('yes', yes);
+      console.log('no', no);
+      setUserYesTrades(yes);
+      setUserNoTrades(no);
 
-  }, [])
+    }
+    getTrades();
+  }, [userId, trades])
 
   return (
     <div className="w-[80vw] max-w-screen-xl mx-auto flex gap-6 p-6" style={{ height: "80vh" }}>
@@ -56,7 +61,7 @@ export const DashboardPage = (): React.ReactElement => {
               </div>
               {
                 userYesTrades.map((trade, i) => (
-                  <div key={`yes-${i}`} className="flex justify-evenly px-1 text-green-400">
+                  <div key={i} className="flex justify-evenly px-1 text-green-400">
                     <span>{trade.Quantity}</span>
                     <span>{trade.YesPrice}</span>
                   </div>
@@ -74,7 +79,7 @@ export const DashboardPage = (): React.ReactElement => {
               </div>
               {
                 userNoTrades.map((trade, i) => (
-                  <div key={`no-${i}`} className="flex justify-evenly px-1 text-red-400">
+                  <div key={i} className="flex justify-evenly px-1 text-red-400">
                     <span>{trade.Quantity}</span>
                     <span>{100 - trade.YesPrice}</span>
                   </div>
@@ -86,7 +91,7 @@ export const DashboardPage = (): React.ReactElement => {
         </div>
 
       </div>
-    </div>
+    </div >
   );
 };
 

@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useEffect, useRef, useState } from "react";
 import { handleOrderbookUpdateResponse, handlePlaceOrderResponse, handleSubscribeResponse, type Trade } from "./WebSocketHandlers";
 import type { OrderBookEntry } from "@/components/trades/data";
+import { useSetRecoilState } from "recoil";
+import { tradeStore } from "@/store/tradesStore";
 
 type WebSocketContextType = {
   socket: WebSocket | null;
@@ -24,7 +26,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [yesorderbookData, setYesOrderbookData] = useState<OrderBookEntry[]>([]);
   const [noorderbookData, setNoOrderbookData] = useState<OrderBookEntry[]>([]);
   const [trades, setTrades] = useState<Trade[]>([])
-
+  const setRecoilTrades = useSetRecoilState(tradeStore)
 
   useEffect(() => {
     const ws = new WebSocket("http://localhost:8080/ws");
@@ -68,6 +70,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           case "trades":
             if (parsedData.success == true) {
               handlePlaceOrderResponse(parsedData, setTrades)
+              setRecoilTrades(parsedData.alltrades)
             }
             break
           default:

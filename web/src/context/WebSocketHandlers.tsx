@@ -32,7 +32,7 @@ interface TradesResponse {
 export const handlePlaceOrderResponse = (data: any, setTrades: Dispatch<SetStateAction<Trade[]>>) => {
   const parsedData = data as TradesResponse
 
-  setTrades(parsedData.alltrades)
+  setTrades(_prev => parsedData.alltrades)
 
 }
 

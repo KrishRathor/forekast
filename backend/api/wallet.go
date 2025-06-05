@@ -33,6 +33,42 @@ func WalletRoutes() http.Handler {
 
 	r := chi.NewRouter()
 
+	r.Post("/getAllTradesOfUser", func(w http.ResponseWriter, r *http.Request) {
+		claims, ok := clerk.SessionClaimsFromContext(r.Context())
+
+		if !ok {
+			fmt.Println("here")
+			w.WriteHeader(http.StatusUnauthorized)
+			w.Write([]byte(`{"access": "unauthorized"}`))
+			return
+		}
+
+		usr, err := user.Get(r.Context(), claims.Subject)
+
+		if err != nil {
+			w.WriteHeader(http.StatusUnauthorized)
+			w.Write([]byte(`{"access": "unauthorized"}`))
+			return
+		}
+
+		trades, err := models.GetAllTradesOfUser(usr.ID)
+
+		if err != nil {
+			w.WriteHeader(http.StatusNotFound)
+			w.Write([]byte(`{"message": "notfound"}`))
+			return
+
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(map[string]any{
+			"message":  "success",
+			"response": trades,
+		})
+
+	})
+
 	r.Post("/getBalanceAndReserve", func(w http.ResponseWriter, r *http.Request) {
 		claims, ok := clerk.SessionClaimsFromContext(r.Context())
 

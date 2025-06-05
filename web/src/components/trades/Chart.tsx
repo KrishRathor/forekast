@@ -15,6 +15,7 @@ export const Chart = (): ReactElement => {
   const [data, setData] = useState<DataType[]>([]);
 
   useEffect(() => {
+    console.log("here")
     if (!trades || trades.length == 0) return;
     const d = trades.map(trade => {
       return {
