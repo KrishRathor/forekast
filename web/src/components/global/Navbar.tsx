@@ -3,7 +3,7 @@ import { Menu, X } from 'lucide-react';
 import { SignedIn, SignedOut, useAuth, useClerk } from '@clerk/clerk-react';
 import { ButtonBlue, ButtonGreen } from '../essentials/Button';
 import { Search } from './Search';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { handleGetBalanceAndReserve, } from '@/hooks/balance';
 import { useRecoilValue, useSetRecoilState } from 'recoil';
 import { walletState } from '@/store/balance';
@@ -11,6 +11,9 @@ import { walletState } from '@/store/balance';
 const Navbar = () => {
   const [open, setOpen] = useState(false);
   const { openSignUp, signOut } = useClerk();
+
+  const location = useLocation();
+  const isMarketPage = location.pathname === "/markets";
 
   const { getToken } = useAuth();
 
@@ -42,9 +45,13 @@ const Navbar = () => {
         </div>
       </div>
 
-      <div className="hidden md:block">
-        <Search />
-      </div>
+      {
+        !!isMarketPage && (
+          <div className="hidden md:block">
+            <Search />
+          </div>
+        )
+      }
 
       <div className="flex items-center gap-3">
         <SignedOut>
