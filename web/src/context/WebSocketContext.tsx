@@ -3,6 +3,7 @@ import { handleOrderbookUpdateResponse, handlePlaceOrderResponse, handleSubscrib
 import type { OrderBookEntry } from "@/components/trades/data";
 import { useSetRecoilState } from "recoil";
 import { tradeStore } from "@/store/tradesStore";
+import { WEBSOCKET_URL } from "@/lib/BackendUrl";
 
 type WebSocketContextType = {
   socket: WebSocket | null;
@@ -29,7 +30,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const setRecoilTrades = useSetRecoilState(tradeStore)
 
   useEffect(() => {
-    const ws = new WebSocket("http://localhost:8080/ws");
+    const ws = new WebSocket(WEBSOCKET_URL);
     socketRef.current = ws;
     setSocket(ws);
 
