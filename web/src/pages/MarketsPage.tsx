@@ -32,32 +32,6 @@ export const MarketsPage = (): React.ReactElement => {
               isTrending={true}
             />
           ))}
-                    {liveMarkets.data?.map((market) => (
-            <MarketCard
-              key={market.ID}
-              id={market.ID}
-              question={market.Question}
-              category="Crypto"
-              expiry={market.Expiry}
-              participants={1204}
-              volume={10400}
-              yesProb={0.58}
-              isTrending={true}
-            />
-          ))}
-          {liveMarkets.data?.map((market) => (
-            <MarketCard
-              key={market.ID}
-              id={market.ID}
-              question={market.Question}
-              category="Crypto"
-              expiry={market.Expiry}
-              participants={1204}
-              volume={10400}
-              yesProb={0.58}
-              isTrending={true}
-            />
-          ))}
 
         </div>
       </div>
