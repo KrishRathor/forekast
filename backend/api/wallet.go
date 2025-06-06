@@ -89,6 +89,8 @@ func WalletRoutes() http.Handler {
 
 		balance, reserve, err2 := models.GetWalletBalanceAndReserve(usr.ID)
 
+    fmt.Println("balcned : ", balance, reserve)
+
 		if err2 != nil {
 			fmt.Println(err)
 			w.WriteHeader(http.StatusUnauthorized)

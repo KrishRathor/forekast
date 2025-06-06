@@ -15,7 +15,7 @@ const Navbar = () => {
   const location = useLocation();
   const isMarketPage = location.pathname === "/markets";
 
-  const { getToken } = useAuth();
+  const { getToken, userId } = useAuth();
 
   const { balance } = useRecoilValue(walletState)
   const setWallet = useSetRecoilState(walletState)
@@ -25,13 +25,14 @@ const Navbar = () => {
       const token = await getToken()
       if (!token) return
       const { balance, reserve } = await handleGetBalanceAndReserve(token)
+      console.log('balance', balance)
       setWallet({
         balance,
         reserve
       })
     }
     getBalance()
-  }, [])
+  }, [userId])
 
   return (
     <nav className="w-full bg-inherit shadow-md px-4 py-3 flex items-center justify-between relative">
