@@ -6,6 +6,11 @@ import {
 } from "@tanstack/react-table";
 import { type OrderBookEntry } from "./data";
 import { useWebSocket } from "@/context/WebSocketContext";
+import { useEffect, useState } from "react";
+
+interface OrderBookProps {
+  marketID: string
+}
 
 const columnHelper = createColumnHelper<OrderBookEntry>();
 
@@ -24,17 +29,33 @@ const columns = [
   }),
 ];
 
-export function OrderBook() {
-  const { yesorderbookData, noorderbookData, currentPrice } = useWebSocket();
+export const OrderBook = (props: OrderBookProps) => {
+
+  const { marketID } = props;
+
+  const { orderBookData } = useWebSocket();
+
+  const [yesOrders, setYesOrders] = useState<OrderBookEntry[]>([]);
+  const [noOrders, setNoOrders] = useState<OrderBookEntry[]>([]);
+  const [currentPrice, setCurrentPrice] = useState<number>(0);
+
+  useEffect(() => {
+    if (!orderBookData) return;
+    if (orderBookData.marketID !== marketID) return;
+
+    setYesOrders(orderBookData.yesOrders);
+    setNoOrders(orderBookData.noOrders);
+    setCurrentPrice(orderBookData.currentPrice);
+  }, [orderBookData, marketID]);
 
   const yesTable = useReactTable({
-    data: yesorderbookData,
+    data: yesOrders,
     columns,
     getCoreRowModel: getCoreRowModel(),
   });
 
   const noTable = useReactTable({
-    data: noorderbookData,
+    data: noOrders,
     columns,
     getCoreRowModel: getCoreRowModel(),
   });
@@ -55,10 +76,10 @@ export function OrderBook() {
                     <th
                       key={header.id}
                       className={`p-2 text-left bg-transparent border-none ${header.column.id === "price"
-                          ? "w-24 md:w-auto"
-                          : header.column.id === "quantity" || header.column.id === "total"
-                            ? "w-28 md:w-auto"
-                            : "w-auto"
+                        ? "w-24 md:w-auto"
+                        : header.column.id === "quantity" || header.column.id === "total"
+                          ? "w-28 md:w-auto"
+                          : "w-auto"
                         }`}
                     >
                       {flexRender(header.column.columnDef.header, header.getContext())}
@@ -74,10 +95,10 @@ export function OrderBook() {
                     <td
                       key={cell.id}
                       className={`p-1 truncate ${cell.column.id === "price"
-                          ? "w-24 md:w-auto"
-                          : cell.column.id === "quantity" || cell.column.id === "total"
-                            ? "w-28 md:w-auto"
-                            : "w-auto"
+                        ? "w-24 md:w-auto"
+                        : cell.column.id === "quantity" || cell.column.id === "total"
+                          ? "w-28 md:w-auto"
+                          : "w-auto"
                         }`}
                       title={String(flexRender(cell.column.columnDef.cell, cell.getContext()))}
                     >
@@ -103,10 +124,10 @@ export function OrderBook() {
                     <td
                       key={cell.id}
                       className={`p-1 truncate ${cell.column.id === "price"
-                          ? "w-24 md:w-auto"
-                          : cell.column.id === "quantity" || cell.column.id === "total"
-                            ? "w-28 md:w-auto"
-                            : "w-auto"
+                        ? "w-24 md:w-auto"
+                        : cell.column.id === "quantity" || cell.column.id === "total"
+                          ? "w-28 md:w-auto"
+                          : "w-auto"
                         }`}
                       title={String(flexRender(cell.column.columnDef.cell, cell.getContext()))}
                     >

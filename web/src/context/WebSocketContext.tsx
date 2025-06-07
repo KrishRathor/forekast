@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useRef, useState } from "react";
 import { handleOrderbookUpdateResponse, handlePlaceOrderResponse, handleSubscribeResponse, type Trade } from "./WebSocketHandlers";
-import type { OrderBookEntry } from "@/components/trades/data";
+import { type OrderBookDataI, type OrderBookEntry } from "@/components/trades/data";
 import { useSetRecoilState } from "recoil";
 import { tradeStore } from "@/store/tradesStore";
 import { WEBSOCKET_URL } from "@/lib/BackendUrl";
@@ -15,6 +15,7 @@ type WebSocketContextType = {
   yesorderbookData: OrderBookEntry[];
   noorderbookData: OrderBookEntry[];
   trades: Trade[];
+  orderBookData: OrderBookDataI | null
 };
 
 const WebSocketContext = createContext<WebSocketContextType | undefined>(undefined);
@@ -28,6 +29,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [noorderbookData, setNoOrderbookData] = useState<OrderBookEntry[]>([]);
   const [trades, setTrades] = useState<Trade[]>([])
   const setRecoilTrades = useSetRecoilState(tradeStore)
+  const [orderBookData, setOrderbookData] = useState<OrderBookDataI | null>(null);
 
   useEffect(() => {
     const ws = new WebSocket(WEBSOCKET_URL);
@@ -61,7 +63,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
             handleSubscribeResponse()
             break
           case "orderbook:update":
-            handleOrderbookUpdateResponse(parsedData, setCurrentPrice, setYesOrderbookData, setNoOrderbookData)
+            handleOrderbookUpdateResponse(parsedData, setCurrentPrice, setYesOrderbookData, setNoOrderbookData, setOrderbookData)
             break
           case "placeorder":
             if (parsedData.success == true) {
@@ -126,7 +128,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   }
 
   return (
-    <WebSocketContext.Provider value={{ socket, sendMessage, subscribeToOrderbook, placeLimitOrder, ready, currentPrice, yesorderbookData, noorderbookData, trades }}>
+    <WebSocketContext.Provider value={{ socket, sendMessage, subscribeToOrderbook, placeLimitOrder, ready, currentPrice, yesorderbookData, noorderbookData, trades, orderBookData }}>
       {children}
     </WebSocketContext.Provider>
   );

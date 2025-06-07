@@ -13,10 +13,14 @@ export const TradesPage = (): React.ReactElement => {
   const location = useLocation();
   const id = new URLSearchParams(location.search).get("id");
 
-  if (id == null) {
-    toast("No Id was provided, redirecting to home");
-    navigate("/");
-  }
+
+  useEffect(() => {
+    if (!id) {
+      toast("No Id was provided, redirecting to home");
+      navigate("/");
+    }
+  }, [id]);
+
 
   if (!id) {
     return <div>No ID Provided</div>;
@@ -71,7 +75,7 @@ export const TradesPage = (): React.ReactElement => {
               <Chart />
             </div>
             <div className="bg-[#14151B] rounded-md p-4 w-full md:w-1/4 min-h-[300px]">
-              <OrderBook />
+              <OrderBook marketID={id} />
             </div>
           </div>
         </div>

@@ -25,6 +25,7 @@ export const useMarketByID = (id: string): {
   marketByID: UseQueryResult<MarketType | null, Error>
 } => {
 
+
   return {
     marketByID: useQuery({
       queryKey: ['marketByID', id],
@@ -36,6 +37,8 @@ export const useMarketByID = (id: string): {
 }
 
 const getMarketByID = async (id: string): Promise<MarketType | null> => {
+
+  console.log('inside hook: ', id);
   const response = await fetch(`${BACKEND_URL}/markets/getMarketByID?id=${id}`)
   const json = await response.json()
 
@@ -43,7 +46,7 @@ const getMarketByID = async (id: string): Promise<MarketType | null> => {
     // handle here
     return null
   }
-
+  console.log('hi', json);
   return json.response as MarketType
 
 }
@@ -55,6 +58,7 @@ const getAllLiveMarkets = async (): Promise<MarketType[]> => {
   if (!response.ok) {
     // handle err
   }
+
 
   return json.response as MarketType[]
 }

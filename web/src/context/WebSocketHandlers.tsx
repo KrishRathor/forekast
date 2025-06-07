@@ -1,3 +1,4 @@
+import type { OrderBookDataI } from "@/components/trades/data";
 import type { Dispatch, SetStateAction } from "react";
 
 type OrderLevel = {
@@ -44,13 +45,23 @@ export const handleOrderbookUpdateResponse = (
   data: any,
   setCurrentPrice: Dispatch<SetStateAction<number>>,
   setYesOrderbookData: Dispatch<SetStateAction<OrderLevel[]>>,
-  setNoOrderbookData: Dispatch<SetStateAction<OrderLevel[]>>
-
+  setNoOrderbookData: Dispatch<SetStateAction<OrderLevel[]>>,
+  setOrderbookData: Dispatch<SetStateAction<OrderBookDataI | null>>
 ) => {
+
+  console.log('response: ', data)
+
   const parsedData = data as OrderBookUpdate
 
   setCurrentPrice(parsedData.currentPrice)
   setYesOrderbookData(parsedData.yesorders)
   setNoOrderbookData(parsedData.noorders)
+
+  setOrderbookData({
+    marketID: parsedData.marketID,
+    currentPrice: parsedData.currentPrice,
+    yesOrders: parsedData.yesorders,
+    noOrders: parsedData.noorders
+  })
 
 }
