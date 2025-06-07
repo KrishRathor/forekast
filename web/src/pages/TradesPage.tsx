@@ -72,7 +72,7 @@ export const TradesPage = (): React.ReactElement => {
 
           <div className="flex flex-col md:flex-row gap-4 min-h-[60vh]">
             <div className="bg-[#14151B] rounded-md p-4 w-full md:w-3/4 min-h-[300px]">
-              <Chart />
+              <Chart marketID={id} />
             </div>
             <div className="bg-[#14151B] rounded-md p-4 w-full md:w-1/4 min-h-[300px]">
               <OrderBook marketID={id} />

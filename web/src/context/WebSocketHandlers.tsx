@@ -16,6 +16,7 @@ type OrderBookUpdate = {
 };
 
 export interface Trade {
+  MarketID: string;
   YesBuyer: string;
   NoBuyer: string;
   YesPrice: number;

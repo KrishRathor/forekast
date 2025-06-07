@@ -153,15 +153,15 @@ const MarketOrder = (): React.ReactElement => {
         </div>
 
         <div className="flex justify-center items-center text-lg text-white">
-          Estimated Price: 5000
+          Estimated Price: {}
         </div>
 
         <div className="flex justify-center mt-4 w-full">
           <SignedIn>
-            <ButtonWhite text="Place Order" onClick={() => { }} />
+            <ButtonWhite text="Coming Soon..." onClick={() => { }} />
           </SignedIn>
           <SignedOut>
-            <ButtonWhite text="Sign Up to Place Order" onClick={() => { }} />
+            <ButtonWhite text="Coming Soon..." onClick={() => { }} />
           </SignedOut>
         </div>
       </div>

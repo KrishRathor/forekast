@@ -18,6 +18,7 @@ type LimitOrder struct {
 }
 
 type Trade struct {
+	MarketID  string
 	YesBuyer  string
 	NoBuyer   string
 	YesPrice  float64
@@ -172,6 +173,7 @@ func PlaceOrder(order LimitOrder) []Trade {
 				yesPrice := 100 - resting.Price
 
 				trades = append(trades, Trade{
+					MarketID:  order.MarketID,
 					YesBuyer:  order.UserID,
 					NoBuyer:   resting.UserID,
 					YesPrice:  yesPrice,
@@ -219,6 +221,7 @@ func PlaceOrder(order LimitOrder) []Trade {
 				yesPrice := bestYesPrice
 
 				trades = append(trades, Trade{
+					MarketID:  order.MarketID,
 					YesBuyer:  resting.UserID,
 					NoBuyer:   order.UserID,
 					YesPrice:  yesPrice,

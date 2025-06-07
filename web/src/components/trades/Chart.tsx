@@ -7,25 +7,27 @@ interface DataType {
   price: number
 }
 
-export const Chart = (): ReactElement => {
+interface ChartProps {
+  marketID: string
+}
 
+export const Chart = (props: ChartProps): ReactElement => {
 
   const { trades } = useWebSocket();
-
   const [data, setData] = useState<DataType[]>([]);
 
   useEffect(() => {
-    console.log("here")
-    if (!trades || trades.length == 0) return;
-    const d = trades.map(trade => {
-      return {
+    if (!trades || trades.length === 0) return;
+
+    const d = trades
+      .filter(trade => trade.MarketID === props.marketID)
+      .map(trade => ({
         time: trade.Timestamp,
         price: trade.YesPrice
-      }
-    })
-    setData(_ => d)
+      }));
 
-  }, [trades])
+    setData(d);
+  }, [trades, props.marketID]);
 
 
 
